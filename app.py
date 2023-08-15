@@ -15,6 +15,14 @@ from glob import glob
 from util.jwt import create_jwt_token
 import os
 import math
+from algorithms.rsa import encrypt
+from algorithms.rsa import findP
+from algorithms.rsa import decrypt
+from algorithms.rsa import find_modular_inverse
+from algorithms.ceaser_cipher import caesar_encryption
+from algorithms.ceaser_cipher import caesar_decryption
+from algorithms.vigenere import vig_enc, vig_dec
+from algorithms.hill_cipher import encrypt,decrypt
 
 load_dotenv()
 
@@ -99,9 +107,115 @@ def login():
 
 
 
+@app.route("/rsa-encryption",methods=["POST"])
+def rsa_encryption():
+    body = request.json
+    message = body["message"]
+    e = body["e"]
+    n = body["n"]
+
+    encrypted_message = encrypt(message,e,n)
+    
+    
+    return {
+        "message":"success",
+        "encrypted_message":encrypted_message
+    }
+
+@app.route("/rsa-decryption",methods=["POST"])
+def rsa_decryption():
+    body = request.json
+    message = body["encrypted_message"]
+    e = body["e"]
+    n = body["n"]
+    p = findP(n)
+    q = n//p
+    phi = (p-1)*(q-1)
+    
+    d = find_modular_inverse(e,phi)
+   
 
 
+    decrypted_message = decrypt(message,d,n)
+    return {
+        "status":"success",
+        "decrypted_messsage":decrypted_message
+    }
 
+
+@app.route("/ceaser-cipher",methods=["POST"])
+def ceaser_cipher():
+    body = request.json
+    message = body["message"]
+    ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
+    encrypted = caesar_encryption(message,int(ceaser_cipher_key))
+    return {
+        "status":"success",
+        "encrypted_message":encrypted
+    }
+
+@app.route("/ceaser-cipher-decryption",methods=["POST"])
+def ceaser_cipher_decryption():
+    body = request.json
+    message = body["encrypted_message"]
+    ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
+    decrypted = caesar_decryption(message,int(ceaser_cipher_key))
+    return {
+        "status":"success",
+        "decrypted_message":decrypted
+    }
+
+@app.route("/vigenere-encryption",methods=["POST"])
+def vigenere_encryption():
+    body = request.json
+    message = body["message"]
+    
+    key = os.getenv("VIGENERE_KEY")
+    print("key",key)
+    encrypted = vig_enc(message,key)
+    return {
+        "status":"success",
+        "encrypted_message":encrypted
+    }
+
+@app.route("/vigenere-decryption",methods=["POST"])
+def vigenere_decryption():
+    body = request.json
+    message = body["encrypted_message"]
+    key = os.getenv("VIGENERE_KEY")
+    decrypted = vig_dec(message,key)
+    return {
+        "status":"success",
+        "decrypted_message":decrypted
+    }
+
+@app.route("/hillcipher-encryption",methods=["POST"])
+def hillcipher_encryption():
+    body = request.json
+    message = body["message"]
+    # key = body["key"]
+    matrix = [[17, 17, 5], [21, 18, 21], [2, 2, 19]]
+    key = 3
+    encrypted = encrypt(message,key,matrix)
+    return {
+        "status":"success",
+        "encrypted_message":encrypted
+    }
+
+@app.route("/hillcipher-decryption",methods=["POST"])
+def hillcipher_decryption():
+    body = request.json
+    message = body["encrypted_message"]
+    # key = body["key"]
+    matrix = [[17, 17, 5], [21, 18, 21], [2, 2, 19]]
+    key = 3
+    decrypted = decrypt(message,key,matrix)
+    return {
+        "status":"success",
+        "encrypted_message":decrypted
+    }
+
+# @app.route("/")
 
 if __name__ == '__main__':
     app.run()
