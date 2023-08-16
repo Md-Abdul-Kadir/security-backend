@@ -22,7 +22,9 @@ from algorithms.rsa import find_modular_inverse
 from algorithms.ceaser_cipher import caesar_encryption
 from algorithms.ceaser_cipher import caesar_decryption
 from algorithms.vigenere import vig_enc, vig_dec
-from algorithms.hill_cipher import encrypt,decrypt
+from algorithms.hill_cipher import encrypt as enc_hill
+from algorithms.hill_cipher import decrypt as dec_hill
+
 
 load_dotenv()
 
@@ -126,6 +128,11 @@ def rsa_encryption():
 def rsa_decryption():
     body = request.json
     message = body["encrypted_message"]
+    # message = message[1:len(message)-1]
+    message = message.split(" ")
+    message = [int(m) for m in message]
+    # print(message)
+    # return "hello"
     e = body["e"]
     n = body["n"]
     p = findP(n)
@@ -139,7 +146,7 @@ def rsa_decryption():
     decrypted_message = decrypt(message,d,n)
     return {
         "status":"success",
-        "decrypted_messsage":decrypted_message
+        "decrypted_message":decrypted_message
     }
 
 
@@ -147,8 +154,10 @@ def rsa_decryption():
 def ceaser_cipher():
     body = request.json
     message = body["message"]
-    ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
-    encrypted = caesar_encryption(message,int(ceaser_cipher_key))
+    key=body["key"]
+    # ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
+    #encrypted = caesar_encryption(message,int(ceaser_cipher_key))
+    encrypted = caesar_encryption(message,key)
     return {
         "status":"success",
         "encrypted_message":encrypted
@@ -158,8 +167,10 @@ def ceaser_cipher():
 def ceaser_cipher_decryption():
     body = request.json
     message = body["encrypted_message"]
-    ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
-    decrypted = caesar_decryption(message,int(ceaser_cipher_key))
+    key=body["key"]
+    # ceaser_cipher_key = os.getenv("CEASER_CIPHER_KEY")
+    # decrypted = caesar_decryption(message,int(ceaser_cipher_key))
+    decrypted = caesar_decryption(message,key)
     return {
         "status":"success",
         "decrypted_message":decrypted
@@ -169,8 +180,8 @@ def ceaser_cipher_decryption():
 def vigenere_encryption():
     body = request.json
     message = body["message"]
-    
-    key = os.getenv("VIGENERE_KEY")
+    key=body["key"]
+    # key = os.getenv("VIGENERE_KEY")
     print("key",key)
     encrypted = vig_enc(message,key)
     return {
@@ -182,7 +193,8 @@ def vigenere_encryption():
 def vigenere_decryption():
     body = request.json
     message = body["encrypted_message"]
-    key = os.getenv("VIGENERE_KEY")
+    key=body["key"]
+    #key = os.getenv("VIGENERE_KEY")
     decrypted = vig_dec(message,key)
     return {
         "status":"success",
@@ -196,7 +208,7 @@ def hillcipher_encryption():
     # key = body["key"]
     matrix = [[17, 17, 5], [21, 18, 21], [2, 2, 19]]
     key = 3
-    encrypted = encrypt(message,key,matrix)
+    encrypted = enc_hill(message,key,matrix)
     return {
         "status":"success",
         "encrypted_message":encrypted
@@ -209,10 +221,10 @@ def hillcipher_decryption():
     # key = body["key"]
     matrix = [[17, 17, 5], [21, 18, 21], [2, 2, 19]]
     key = 3
-    decrypted = decrypt(message,key,matrix)
+    decrypted = dec_hill(message,key,matrix)
     return {
         "status":"success",
-        "encrypted_message":decrypted
+        "decrypted_message":decrypted
     }
 
 # @app.route("/")
